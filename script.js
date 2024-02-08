@@ -1,68 +1,39 @@
-// script.js
 
-// Function to retrieve data from the Writers table
-function fetchWritersData() {
-    return new Promise((resolve, reject) => {
-        // Open a connection to the database
-        const db = new SQL.Database(); // Create a new SQLite database instance
-        db.open('persons.db', SQL.OPEN_READONLY, (err) => {
-            if (err) {
-                reject(err);
-                return;
-            }
+const data = [
+    {type: "Чад", name: "Франко Іван", date_birth: 1856, date_death: 1916}, 
+    {type: "Writer", name: "Українка", date_birth: 1871, date_death: 1913}, 
+    {type: "Writer", name: "Кобилянська Ольга", date_birth: 1863, date_death: 1942},
+]
 
-            // Query to select all data from the Writers table
-            const query = "SELECT * FROM Writers";
+console.log(data)
 
-            // Execute the query
-            const resultSet = db.exec(query);
 
-            // Close the database connection
-            db.close();
+// Get the timeline container
+const timelineContainer = document.getElementById('timeline');
 
-            // Resolve with the result set
-            resolve(resultSet);
-        });
-    });
-}
+const min_year = 1800
+const max_year = 1950
+const year_as_percent = 100 / (max_year - min_year)
+const bar_height = 20
+const font_height = 10
 
-// Function to generate timeline bars based on the writers data
-function generateTimelineBars() {
-    // Fetch data from the Writers table
-    fetchWritersData()
-        .then((resultSet) => {
-            // Extract rows from the result set
-            const rows = resultSet[0].values;
+data.forEach(drawbar) // for each record in data do drawbar
 
-            // Get the timeline container
-            const timelineContainer = document.getElementById('timeline');
+function drawbar(person, index){
+    const y = index * 50
 
-            // Loop through the rows and generate timeline bars
-            rows.forEach((row) => {
-                const id = row[0];
-                const name = row[1];
-                const birthYear = row[2];
-                const deathYear = row[3];
-                const photoPath = row[4];
+    const lifeStart = person.date_birth - min_year
+    const lifeSpan = person.date_death - person.date_birth
 
-                // Calculate the position and length of the timeline bar
-                const startPosition = ((birthYear - 1800) / (1950 - 1800)) * 100; // Calculate percentage
-                const barLength = ((deathYear - birthYear) / (1950 - 1800)) * 100; // Calculate percentage
+    const x = lifeStart * year_as_percent
+    const Width = lifeSpan * year_as_percent
 
-                // Create a timeline bar element
-                const timelineBar = document.createElement('div');
-                timelineBar.className = 'timeline-bar';
-                timelineBar.style.left = `${startPosition}%`;
-                timelineBar.style.width = `${barLength}%`;
-                timelineBar.textContent = name;
+    const text_x = x + Width / 2
+    const text_y = y + bar_height / 2
 
-                // Append the timeline bar to the timeline container
-                timelineContainer.appendChild(timelineBar);
-            });
-        })
-        .catch((err) => {
-            console.error('Error fetching data:', err);
-        });
+    timelineContainer.innerHTML += `<rect x="${x}%" y='${y}' width='${Width}%' height='${bar_height}px' fill='yellow'/>` // % from timeline
+    timelineContainer.innerHTML += `<text x="${text_x}%"  y='${text_y}' text-anchor="middle" dominant-baseline="middle" font-size="${font_height}px">${person.name}</text>`
+
 }
 
 // Call the function to generate timeline bars when the DOM content is loaded
